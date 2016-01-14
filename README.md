@@ -45,20 +45,20 @@ This plugin has the ability to gather the following metrics:
 
 Namespace | Data Type | 
 ----------|-----------|
-/intel/linux/swap/io/in_bytes_per_sec | float64 | 
-/intel/linux/swap/io/in_pages_per_sec | float64 | 
-/intel/linux/swap/io/out_bytes_per_sec | float64 | 
-/intel/linux/swap/io/out_pages_per_sec | float64 | 
-/intel/linux/swap/device/{device}/used_bytes | float64 | 
-/intel/linux/swap/device/{device}/used_percent | float64 | 
-/intel/linux/swap/device/{device}/free_bytes | float64 | 
-/intel/linux/swap/device/{device}/free_percent | float64 | 
-/intel/linux/swap/all/used_bytes | float64 | 
-/intel/linux/swap/all/used_percent | float64 | 
-/intel/linux/swap/all/free_bytes | float64 | 
-/intel/linux/swap/all/free_percent | float64 | 
-/intel/linux/swap/all/cached_bytes | float64 | 
-/intel/linux/swap/all/cached_percent | float64 | 
+/intel/procfs/swap/io/in_bytes_per_sec | float64 | 
+/intel/procfs/swap/io/in_pages_per_sec | float64 | 
+/intel/procfs/swap/io/out_bytes_per_sec | float64 | 
+/intel/procfs/swap/io/out_pages_per_sec | float64 | 
+/intel/procfs/swap/device/{device}/used_bytes | float64 | 
+/intel/procfs/swap/device/{device}/used_percent | float64 | 
+/intel/procfs/swap/device/{device}/free_bytes | float64 | 
+/intel/procfs/swap/device/{device}/free_percent | float64 | 
+/intel/procfs/swap/all/used_bytes | float64 | 
+/intel/procfs/swap/all/used_percent | float64 | 
+/intel/procfs/swap/all/free_bytes | float64 | 
+/intel/procfs/swap/all/free_percent | float64 | 
+/intel/procfs/swap/all/cached_bytes | float64 | 
+/intel/procfs/swap/all/cached_percent | float64 | 
 
 ### Examples
 Example task manifest to use swap plugin:
@@ -72,20 +72,20 @@ Example task manifest to use swap plugin:
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/linux/swap/device/dev_sda5/used_bytes": {},
-                "/intel/linux/swap/device/dev_sda5/used_percent": {},
-                "/intel/linux/swap/device/dev_sda5/free_bytes": {},
-                "/intel/linux/swap/device/dev_sda5/free_percent": {},
-                "/intel/linux/swap/all/cached_bytes": {},
-                "/intel/linux/swap/all/cached_percent":{},
-                "/intel/linux/swap/all/free_bytes":{},
-                "/intel/linux/swap/all/free_percent":{},
-                "/intel/linux/swap/all/used_bytes":{},
-                "/intel/linux/swap/all/used_percent":{},
-                "/intel/linux/swap/io/in_bytes_per_sec":{},
-                "/intel/linux/swap/io/in_pages_per_sec":{},
-                "/intel/linux/swap/io/out_bytes_per_sec":{},
-                "/intel/linux/swap/io/out_pages_per_sec":{}
+                "/intel/procfs/swap/device/dev_sda5/used_bytes": {},
+                "/intel/procfs/swap/device/dev_sda5/used_percent": {},
+                "/intel/procfs/swap/device/dev_sda5/free_bytes": {},
+                "/intel/procfs/swap/device/dev_sda5/free_percent": {},
+                "/intel/procfs/swap/all/cached_bytes": {},
+                "/intel/procfs/swap/all/cached_percent":{},
+                "/intel/procfs/swap/all/free_bytes":{},
+                "/intel/procfs/swap/all/free_percent":{},
+                "/intel/procfs/swap/all/used_bytes":{},
+                "/intel/procfs/swap/all/used_percent":{},
+                "/intel/procfs/swap/io/in_bytes_per_sec":{},
+                "/intel/procfs/swap/io/in_pages_per_sec":{},
+                "/intel/procfs/swap/io/out_bytes_per_sec":{},
+                "/intel/procfs/swap/io/out_pages_per_sec":{}
             },
             "config": {
             },

@@ -4,7 +4,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015 Intel Corporation
+Copyright 2015-2016 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,58 +32,58 @@ import (
 var (
 	mockMts = []plugin.PluginMetricType{
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "io", "in_bytes_per_sec"},
+			Namespace_: []string{"intel", "procfs", "swap", "io", "in_bytes_per_sec"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "io", "in_pages_per_sec"},
+			Namespace_: []string{"intel", "procfs", "swap", "io", "in_pages_per_sec"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "io", "out_bytes_per_sec"},
+			Namespace_: []string{"intel", "procfs", "swap", "io", "out_bytes_per_sec"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "io", "out_pages_per_sec"},
+			Namespace_: []string{"intel", "procfs", "swap", "io", "out_pages_per_sec"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda5", "used_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "used_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda6", "used_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "used_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda5", "used_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "used_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda6", "used_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "used_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda5", "free_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "free_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda6", "free_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "free_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda5", "free_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "free_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "device", "dev_sda6", "free_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "free_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "used_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "used_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "used_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "used_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "free_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "free_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "free_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "free_percent"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "cached_bytes"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "cached_bytes"},
 		},
 		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "linux", "swap", "all", "cached_percent"},
+			Namespace_: []string{"intel", "procfs", "swap", "all", "cached_percent"},
 		},
 	}
 	ioNewMockFile  = "/tmp/vmstat_test"

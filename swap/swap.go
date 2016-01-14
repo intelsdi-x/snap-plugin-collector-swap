@@ -4,7 +4,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015 Intel Corporation
+Copyright 2015-2016 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package swap
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -43,7 +44,7 @@ const (
 
 	// Namespace definition
 	vendorPrefix = "intel"
-	osPrefix     = "linux"
+	srcPrefix    = "procfs"
 	typePrefix   = "swap"
 	ioPrefix     = "io"
 	devPrefix    = "device"
@@ -223,17 +224,17 @@ func (swap *Swap) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetr
 		devices = append(devices, noSlashes(dev))
 	}
 	for _, metric := range ioMetrics {
-		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, osPrefix, typePrefix, ioPrefix, metric}}
+		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric}}
 		metricTypes = append(metricTypes, metricType)
 	}
 	for _, device := range devices {
 		for _, metric := range devMetrics {
-			metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, osPrefix, typePrefix, devPrefix, device, metric}}
+			metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, devPrefix, device, metric}}
 			metricTypes = append(metricTypes, metricType)
 		}
 	}
 	for _, metric := range combMetrics {
-		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, osPrefix, typePrefix, combPrefix, metric}}
+		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, combPrefix, metric}}
 		metricTypes = append(metricTypes, metricType)
 	}
 	return metricTypes, nil
@@ -243,6 +244,15 @@ func (swap *Swap) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetr
 func (swap *Swap) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	c := cpolicy.New()
 	return c, nil
+}
+
+// calcPercantage returns outcome of fraction defined by nominator and denominator in percents
+func calcPercentage(nom, denom float64) float64 {
+	if denom == 0 {
+		// avoid dividing by zero
+		return 0
+	}
+	return 100 * nom / denom
 }
 
 func getDevMetrics(dest map[string]float64) error {
@@ -284,13 +294,13 @@ func getDevMetrics(dest map[string]float64) error {
 		dest[keyUsedBytes] = usedBytes
 
 		keyUsedPerc := dev + "/" + devMetrics[1]
-		dest[keyUsedPerc] = used / total * 100
+		dest[keyUsedPerc] = calcPercentage(used, total)
 
 		keyFreeBytes := dev + "/" + devMetrics[2]
 		dest[keyFreeBytes] = freeBytes
 
 		keyFreePerc := dev + "/" + devMetrics[3]
-		dest[keyFreePerc] = (total - used) / total * 100
+		dest[keyFreePerc] = calcPercentage(total-used, total)
 	}
 	return nil
 }
@@ -316,6 +326,7 @@ func getCombinedMetrics(dest map[string]float64) error {
 		if strings.Fields(line)[0] == "SwapTotal:" {
 			totalS := strings.Fields(line)[1]
 			total, err = strconv.ParseFloat(totalS, 64)
+
 			if err != nil {
 				return fmt.Errorf("SwapTotal is not a number: %s", totalS)
 			}
@@ -335,15 +346,20 @@ func getCombinedMetrics(dest map[string]float64) error {
 			}
 		}
 	}
+
+	if total == 0 {
+		fmt.Fprintln(os.Stderr, "Total size of swap is zero, swap might be turned off")
+	}
+
 	used := total - free
 	totalSwap := total + cached
 
 	dest[combMetrics[0]] = used * 1024.0
-	dest[combMetrics[1]] = used / totalSwap * 100
+	dest[combMetrics[1]] = calcPercentage(used, totalSwap)
 	dest[combMetrics[2]] = free * 1024.0
-	dest[combMetrics[3]] = free / totalSwap * 100
+	dest[combMetrics[3]] = calcPercentage(free, totalSwap)
 	dest[combMetrics[4]] = cached * 1024.0
-	dest[combMetrics[5]] = cached / totalSwap * 100
+	dest[combMetrics[5]] = calcPercentage(cached, totalSwap)
 	return nil
 }
 
@@ -406,6 +422,11 @@ func getIOmetrics(swap *Swap) error {
 	oldSwapOut := swap.ioHistory.swapOut
 	oldTimestamp := swap.ioHistory.timestamp
 	duration := time.Since(oldTimestamp).Seconds()
+
+	if duration == 0 {
+		return errors.New("Invalid duration time")
+	}
+
 	swap.ioStats[ioMetrics[0]] = (swapIn - oldSwapIn) * pageSize / duration
 	swap.ioStats[ioMetrics[1]] = (swapIn - oldSwapIn) / duration
 	swap.ioStats[ioMetrics[2]] = (swapOut - oldSwapOut) * pageSize / duration
