@@ -1,6 +1,114 @@
 {
 	"ImportPath": "github.com/intelsdi-x/snap-plugin-collector-swap",
 	"GoVersion": "go1.5",
+	"GodepVersion": "v60",
 	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.10.0",
+			"Rev": "4b6ea7319e214d98c938f12692336f7ca9348d6b"
+		},
+		{
+			"ImportPath": "github.com/gopherjs/gopherjs/js",
+			"Rev": "4b53e1bddba0e2f734514aeb6c02db652f4c6fe8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/cpolicy",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/encoding",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/encrypter",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/cdata",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/ctypes",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/serror",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/pkg/ctree",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/pkg/schedule",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/scheduler/wmap",
+			"Comment": "v0.12.0-beta",
+			"Rev": "e7bc051a9cd62781780fb090940a37f73d942c04"
+		},
+		{
+			"ImportPath": "github.com/jtolds/gls",
+			"Comment": "v4.2.0",
+			"Rev": "8ddce2a84170772b95dd5d576c48d517b22cac63"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/assertions",
+			"Comment": "1.6.0-2-g2d74a41",
+			"Rev": "2d74a419fbe076f8c76ed8b1c7c633a676c5dc63"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/assertions/internal/go-render/render",
+			"Comment": "1.6.0-2-g2d74a41",
+			"Rev": "2d74a419fbe076f8c76ed8b1c7c633a676c5dc63"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/assertions/internal/oglematchers",
+			"Comment": "1.6.0-2-g2d74a41",
+			"Rev": "2d74a419fbe076f8c76ed8b1c7c633a676c5dc63"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/goconvey/convey",
+			"Comment": "1.6.1-14-g1018444",
+			"Rev": "101844423e4188895b52ec7fcb5689d014f32c30"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/goconvey/convey/gotest",
+			"Comment": "1.6.1-14-g1018444",
+			"Rev": "101844423e4188895b52ec7fcb5689d014f32c30"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/goconvey/convey/reporting",
+			"Comment": "1.6.1-14-g1018444",
+			"Rev": "101844423e4188895b52ec7fcb5689d014f32c30"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "320cb01ddbbf0473674c2585f9b6e245721de355"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "a83829b6f1293c91addabc89d0571c246397bbf4"
+		}
 	]
 }
