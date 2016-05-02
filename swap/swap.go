@@ -32,13 +32,14 @@ import (
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core"
 )
 
 const (
 	// Name of the plugin
 	name = "swap"
 	// Version of the plugin
-	version = 1
+	version = 2
 	// Type of the plugin
 	pluginType = plugin.CollectorPluginType
 
@@ -125,13 +126,13 @@ func New() *Swap {
 }
 
 // CollectMetrics returns metrics relevant to Linux swap
-func (swap *Swap) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
+func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, error) {
 	// Gather metrics
 	getDevDone := false
 	getCombDone := false
 	getIODone := false
 	for _, mt := range mts {
-		ns := mt.Namespace()
+		ns := mt.Namespace().Strings()
 		switch ns[3] {
 		case devPrefix:
 			if !getDevDone {
@@ -161,11 +162,10 @@ func (swap *Swap) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.Plugin
 	}
 
 	//Populate metrics
-	host, _ := os.Hostname()
-	metrics := []plugin.PluginMetricType{}
-	var m plugin.PluginMetricType
+	metrics := []plugin.MetricType{}
+	var m plugin.MetricType
 	for _, mt := range mts {
-		ns := mt.Namespace()
+		ns := mt.Namespace().Strings()
 		switch ns[3] {
 		case devPrefix:
 			stat := ns[4] + "/" + ns[5]
@@ -189,8 +189,7 @@ func (swap *Swap) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.Plugin
 			}
 			m.Data_ = val
 		}
-		m.Namespace_ = ns
-		m.Source_ = host
+		m.Namespace_ = mt.Namespace()
 		m.Timestamp_ = time.Now()
 		metrics = append(metrics, m)
 	}
@@ -198,8 +197,8 @@ func (swap *Swap) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.Plugin
 }
 
 // GetMetricTypes returns the metric types relevant to Linux swap
-func (swap *Swap) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
-	metricTypes := []plugin.PluginMetricType{}
+func (swap *Swap) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, error) {
+	metricTypes := []plugin.MetricType{}
 	fd, err := os.Open(SourcePerDev)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file for reading: %s", SourcePerDev)
@@ -224,17 +223,17 @@ func (swap *Swap) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetr
 		devices = append(devices, noSlashes(dev))
 	}
 	for _, metric := range ioMetrics {
-		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric}}
+		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric)}
 		metricTypes = append(metricTypes, metricType)
 	}
 	for _, device := range devices {
 		for _, metric := range devMetrics {
-			metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, devPrefix, device, metric}}
+			metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, devPrefix, device, metric)}
 			metricTypes = append(metricTypes, metricType)
 		}
 	}
 	for _, metric := range combMetrics {
-		metricType := plugin.PluginMetricType{Namespace_: []string{vendorPrefix, srcPrefix, typePrefix, combPrefix, metric}}
+		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, combPrefix, metric)}
 		metricTypes = append(metricTypes, metricType)
 	}
 	return metricTypes, nil

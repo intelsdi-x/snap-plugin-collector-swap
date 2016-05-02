@@ -26,64 +26,65 @@ import (
 	"testing"
 
 	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/core"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 var (
-	mockMts = []plugin.PluginMetricType{
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "io", "in_bytes_per_sec"},
+	mockMts = []plugin.MetricType{
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "io", "in_bytes_per_sec"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "io", "in_pages_per_sec"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "io", "in_pages_per_sec"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "io", "out_bytes_per_sec"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "io", "out_bytes_per_sec"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "io", "out_pages_per_sec"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "io", "out_pages_per_sec"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "used_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "used_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "used_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "used_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "used_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "used_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "used_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "used_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "free_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "free_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "free_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "free_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda5", "free_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "free_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "device", "dev_sda6", "free_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "free_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "used_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "used_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "used_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "used_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "free_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "free_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "free_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "free_percent"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "cached_bytes"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "cached_bytes"),
 		},
-		plugin.PluginMetricType{
-			Namespace_: []string{"intel", "procfs", "swap", "all", "cached_percent"},
+		plugin.MetricType{
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "cached_percent"),
 		},
 	}
 	ioNewMockFile  = "/tmp/vmstat_test"
@@ -116,7 +117,7 @@ func TestGetMetricTypes(t *testing.T) {
 	createMockFiles()
 
 	swap := New()
-	var pl plugin.PluginConfigType
+	var pl plugin.ConfigType
 	Convey("source files available", t, func() {
 		So(func() { swap.GetMetricTypes(pl) }, ShouldNotPanic)
 		m, err := swap.GetMetricTypes(pl)
