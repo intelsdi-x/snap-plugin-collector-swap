@@ -46,7 +46,28 @@ This builds the plugin in `/build/rootfs`
 ## Documentation
 
 ### Collected Metrics
-List of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/METRICS.md).
+The path to the procfs can be provided in configuration as `procfs_path`. If configuration is not provided, the plugin will use the default of `/proc`.
+
+It can be set in the snap global config that is loaded with snapd, e.g.:
+```json
+{
+    "log_level": 1,
+    "control": {
+        "plugin_trust_level": 0,
+        "plugins": {
+            "collector": {
+				"swap": {
+					"all": {
+						"proc_path": "/hostproc"
+					}
+				}
+            }
+        }
+    }
+}
+```
+
+The list of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/METRICS.md).
 
 ### Examples
 
@@ -79,7 +100,7 @@ $ $SNAP_PATH/bin/snapctl metric list
 ```
 
 Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary files in [examples/tasks/] (https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/examples/tasks/)):
-```
+```json
 {
     "version": 1,
     "schedule": {
@@ -104,8 +125,7 @@ Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary 
                 "/intel/procfs/swap/io/out_bytes_per_sec":{},
                 "/intel/procfs/swap/io/out_pages_per_sec":{}
             },
-            "config": {
-            },
+            "config": {},
             "process": null,
             "publish": [
                 {

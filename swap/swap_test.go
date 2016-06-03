@@ -27,6 +27,7 @@ import (
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/core"
+	"github.com/intelsdi-x/snap/core/ctypes"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -87,10 +88,10 @@ var (
 			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "cached_percent"),
 		},
 	}
-	ioNewMockFile  = "/tmp/vmstat_test"
-	ioOldMockFile  = "/tmp/stat_test"
-	perDevMockFile = "/tmp/swaps_test"
-	compMockFile   = "/tmp/meminfo_test"
+	ioNewMockFile  = "/tmp/vmstat"
+	ioOldMockFile  = "/tmp/stat"
+	perDevMockFile = "/tmp/swaps"
+	compMockFile   = "/tmp/meminfo"
 )
 
 func TestGetConfigPolicy(t *testing.T) {
@@ -117,10 +118,12 @@ func TestGetMetricTypes(t *testing.T) {
 	createMockFiles()
 
 	swap := New()
-	var pl plugin.ConfigType
+	cfg := plugin.NewPluginConfigType()
+	cfg.AddItem("proc_path", ctypes.ConfigValueStr{Value: "/tmp"})
+
 	Convey("source files available", t, func() {
-		So(func() { swap.GetMetricTypes(pl) }, ShouldNotPanic)
-		m, err := swap.GetMetricTypes(pl)
+		So(func() { swap.GetMetricTypes(cfg) }, ShouldNotPanic)
+		m, err := swap.GetMetricTypes(cfg)
 		So(err, ShouldBeNil)
 		// 4 - IO metrics, 8 - dev metrics (2 devices), 6 - combined metrics
 		So(len(m), ShouldEqual, 18)
@@ -128,7 +131,7 @@ func TestGetMetricTypes(t *testing.T) {
 
 	Convey("dev source file not available", t, func() {
 		os.Remove(perDevMockFile)
-		m, err := swap.GetMetricTypes(pl)
+		m, err := swap.GetMetricTypes(cfg)
 		So(err, ShouldNotBeNil)
 		So(m, ShouldBeNil)
 	})
