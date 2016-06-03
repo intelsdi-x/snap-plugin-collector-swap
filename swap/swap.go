@@ -30,6 +30,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/intelsdi-x/snap-plugin-utilities/config"
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 	"github.com/intelsdi-x/snap/core"
@@ -39,7 +40,7 @@ const (
 	// Name of the plugin
 	name = "swap"
 	// Version of the plugin
-	version = 2
+	version = 3
 	// Type of the plugin
 	pluginType = plugin.CollectorPluginType
 
@@ -197,8 +198,33 @@ func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, 
 }
 
 // GetMetricTypes returns the metric types relevant to Linux swap
-func (swap *Swap) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, error) {
+func (swap *Swap) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
 	metricTypes := []plugin.MetricType{}
+
+	if procPath, err := config.GetConfigItem(cfg, "proc_path"); err == nil {
+		SourceIOnew = procPath.(string) + "/vmstat"
+		SourceIOold = procPath.(string) + "/stat"
+		SourcePerDev = procPath.(string) + "/swaps"
+		SourceCombined = procPath.(string) + "/meminfo"
+
+		swap.newIOfile = true
+		// Check if we should use new or old source for IO data
+		files := []string{SourcePerDev, SourceCombined}
+		fh, err := os.Open(SourceIOnew)
+		if err != nil {
+			files = append(files, SourceIOold)
+			swap.newIOfile = false
+		}
+		defer fh.Close()
+
+		// Bail out if not all data sources are accessible
+		for _, f := range files {
+			if !fileOK(f) {
+				return nil, fmt.Errorf("Data source %v not accesible", f)
+			}
+		}
+	}
+
 	fd, err := os.Open(SourcePerDev)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file for reading: %s", SourcePerDev)
@@ -241,8 +267,12 @@ func (swap *Swap) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, erro
 
 // GetConfigPolicy returns a ConfigPolicy
 func (swap *Swap) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	c := cpolicy.New()
-	return c, nil
+	cfg := cpolicy.New()
+	rule, _ := cpolicy.NewStringRule("proc_path", false, "/proc")
+	policy := cpolicy.NewPolicyNode()
+	policy.Add(rule)
+	cfg.Add([]string{"intel", "procfs"}, policy)
+	return cfg, nil
 }
 
 // calcPercantage returns outcome of fraction defined by nominator and denominator in percents
