@@ -46,7 +46,7 @@ This builds the plugin in `/build/rootfs`
 ## Documentation
 
 ### Collected Metrics
-The path to the procfs can be provided in configuration as `procfs_path`. If configuration is not provided, the plugin will use the default of `/proc`.
+The path to the procfs can be provided in configuration as `proc_path`. If configuration is not provided, the plugin will use the default of `/proc`.
 
 It can be set in the snap global config that is loaded with snapd, e.g.:
 ```json
