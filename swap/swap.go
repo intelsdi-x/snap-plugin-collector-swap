@@ -30,17 +30,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/intelsdi-x/snap-plugin-utilities/config"
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 	"github.com/intelsdi-x/snap/core"
+
+	"github.com/intelsdi-x/snap-plugin-utilities/config"
 )
 
 const (
 	// Name of the plugin
 	name = "swap"
 	// Version of the plugin
-	version = 3
+	version = 4
 	// Type of the plugin
 	pluginType = plugin.CollectorPluginType
 
@@ -165,25 +166,44 @@ func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, 
 	//Populate metrics
 	metrics := []plugin.MetricType{}
 	var m plugin.MetricType
+	ts := time.Now()
 	for _, mt := range mts {
-		ns := mt.Namespace().Strings()
-		switch ns[3] {
+		ns := mt.Namespace()
+		switch ns[3].Value {
 		case devPrefix:
-			stat := ns[4] + "/" + ns[5]
-			val, ok := swap.devStats[stat]
-			if !ok {
-				return metrics, fmt.Errorf("Requested per device swap stat %s is not available!", stat)
+			if ns[4].Value == "*" {
+				for k, v := range swap.devStats {
+					metricParts := strings.Split(k, "/")
+					if ns[5].Value == metricParts[1] {
+						ns1 := make([]core.NamespaceElement, len(ns))
+						copy(ns1, ns)
+						ns1[4].Value = metricParts[0]
+						ns1[4].Name = ns[4].Name
+						metrics = append(metrics, plugin.MetricType{
+							Timestamp_: ts,
+							Namespace_: ns1,
+							Data_:      v,
+						})
+					}
+				}
+				continue
+			} else {
+				stat := ns[4].Value + "/" + ns[5].Value
+				val, ok := swap.devStats[stat]
+				if !ok {
+					return metrics, fmt.Errorf("Requested per device swap stat %s is not available!", stat)
+				}
+				m.Data_ = val
 			}
-			m.Data_ = val
 		case combPrefix:
-			stat := ns[4]
+			stat := ns[4].Value
 			val, ok := swap.combStats[stat]
 			if !ok {
 				return metrics, fmt.Errorf("Requested combined swap stat %s is not available!", stat)
 			}
 			m.Data_ = val
 		case ioPrefix:
-			stat := ns[4]
+			stat := ns[4].Value
 			val, ok := swap.ioStats[stat]
 			if !ok {
 				return metrics, fmt.Errorf("Requested IO swap stat %s is not available!", stat)
@@ -191,7 +211,7 @@ func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, 
 			m.Data_ = val
 		}
 		m.Namespace_ = mt.Namespace()
-		m.Timestamp_ = time.Now()
+		m.Timestamp_ = ts
 		metrics = append(metrics, m)
 	}
 	return metrics, nil
@@ -252,11 +272,13 @@ func (swap *Swap) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, er
 		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric)}
 		metricTypes = append(metricTypes, metricType)
 	}
-	for _, device := range devices {
-		for _, metric := range devMetrics {
-			metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, devPrefix, device, metric)}
-			metricTypes = append(metricTypes, metricType)
-		}
+	for _, metric := range devMetrics {
+		metricTypes = append(metricTypes, plugin.MetricType{
+			Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, devPrefix).
+				AddDynamicElement("device", "swap device name").
+				AddStaticElement(metric),
+			Description_: "dynamic swap metric: " + metric,
+		})
 	}
 	for _, metric := range combMetrics {
 		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, combPrefix, metric)}
@@ -271,7 +293,7 @@ func (swap *Swap) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	rule, _ := cpolicy.NewStringRule("proc_path", false, "/proc")
 	policy := cpolicy.NewPolicyNode()
 	policy.Add(rule)
-	cfg.Add([]string{"intel", "procfs"}, policy)
+	cfg.Add([]string{vendorPrefix, srcPrefix, name}, policy)
 	return cfg, nil
 }
 
