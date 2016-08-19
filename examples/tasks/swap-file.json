@@ -22,11 +22,11 @@
                 "/intel/procfs/swap/io/out_bytes_per_sec": {},
                 "/intel/procfs/swap/io/out_pages_per_sec": {}
             },
-	    "config": {
-		"/intel/procfs/swap": {
-		    "proc_path": "/proc"
-		}
-	    },
+            "config": {
+                "/intel/procfs/swap": {
+                    "proc_path": "/proc"
+                }
+            },
             "process": null,
             "publish": [
                 {
