@@ -46,28 +46,16 @@ var (
 			Namespace_: core.NewNamespace("intel", "procfs", "swap", "io", "out_pages_per_sec"),
 		},
 		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "used_bytes"),
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "*", "used_bytes"),
 		},
 		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "used_bytes"),
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "*", "used_percent"),
 		},
 		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "used_percent"),
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "*", "free_bytes"),
 		},
 		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "used_percent"),
-		},
-		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "free_bytes"),
-		},
-		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "free_bytes"),
-		},
-		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda5", "free_percent"),
-		},
-		plugin.MetricType{
-			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "dev_sda6", "free_percent"),
+			Namespace_: core.NewNamespace("intel", "procfs", "swap", "device", "*", "free_percent"),
 		},
 		plugin.MetricType{
 			Namespace_: core.NewNamespace("intel", "procfs", "swap", "all", "used_bytes"),
@@ -125,8 +113,8 @@ func TestGetMetricTypes(t *testing.T) {
 		So(func() { swap.GetMetricTypes(cfg) }, ShouldNotPanic)
 		m, err := swap.GetMetricTypes(cfg)
 		So(err, ShouldBeNil)
-		// 4 - IO metrics, 8 - dev metrics (2 devices), 6 - combined metrics
-		So(len(m), ShouldEqual, 18)
+		// 4 - IO metrics, 4 - dev metrics, 6 - combined metrics
+		So(len(m), ShouldEqual, 14)
 	})
 
 	Convey("dev source file not available", t, func() {

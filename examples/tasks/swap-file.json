@@ -7,10 +7,10 @@
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/procfs/swap/device/dev_sda5/used_bytes": {},
-                "/intel/procfs/swap/device/dev_sda5/used_percent": {},
-                "/intel/procfs/swap/device/dev_sda5/free_bytes": {},
-                "/intel/procfs/swap/device/dev_sda5/free_percent": {},
+                "/intel/procfs/swap/device/*/used_bytes": {},
+                "/intel/procfs/swap/device/*/used_percent": {},
+                "/intel/procfs/swap/device/*/free_bytes": {},
+                "/intel/procfs/swap/device/*/free_percent": {},
                 "/intel/procfs/swap/all/cached_bytes": {},
                 "/intel/procfs/swap/all/cached_percent": {},
                 "/intel/procfs/swap/all/free_bytes": {},
@@ -22,13 +22,17 @@
                 "/intel/procfs/swap/io/out_bytes_per_sec": {},
                 "/intel/procfs/swap/io/out_pages_per_sec": {}
             },
-            "config": {},
+            "config": {
+                "/intel/procfs/swap": {
+                    "proc_path": "/proc"
+                }
+            },
             "process": null,
             "publish": [
                 {
-                    "plugin_name": "file",
+                    "plugin_name": "mock-file",
                     "config": {
-                        "file": "/tmp/published_swap"
+                        "file": "/tmp/published_swap.log"
                     }
                 }
             ]

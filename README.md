@@ -56,11 +56,11 @@ It can be set in the snap global config that is loaded with snapd, e.g.:
         "plugin_trust_level": 0,
         "plugins": {
             "collector": {
-				"swap": {
-					"all": {
-						"proc_path": "/hostproc"
-					}
-				}
+                "swap": {
+                    "all": {
+                        "proc_path": "/proc"
+                    }
+                }
             }
         }
     }
@@ -110,10 +110,10 @@ Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary 
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/procfs/swap/device/dev_sda5/used_bytes": {},
-                "/intel/procfs/swap/device/dev_sda5/used_percent": {},
-                "/intel/procfs/swap/device/dev_sda5/free_bytes": {},
-                "/intel/procfs/swap/device/dev_sda5/free_percent": {},
+                "/intel/procfs/swap/device/*/used_bytes": {},
+                "/intel/procfs/swap/device/*/used_percent": {},
+                "/intel/procfs/swap/device/*/free_bytes": {},
+                "/intel/procfs/swap/device/*/free_percent": {},
                 "/intel/procfs/swap/all/cached_bytes": {},
                 "/intel/procfs/swap/all/cached_percent":{},
                 "/intel/procfs/swap/all/free_bytes":{},
@@ -129,9 +129,9 @@ Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary 
             "process": null,
             "publish": [
                 {
-                    "plugin_name": "file",
+                    "plugin_name": "mock-file",
                     "config": {
-                        "file": "/tmp/published_swap"
+                        "file": "/tmp/published_swap.log"
                     }
                 }
             ]
