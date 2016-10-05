@@ -251,23 +251,6 @@ func (swap *Swap) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, er
 	}
 	defer fd.Close()
 
-	scanner := bufio.NewScanner(fd)
-	scanner.Split(bufio.ScanLines)
-	devices := []string{}
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := len(strings.Fields(line))
-		if fields != 5 {
-			continue
-		}
-
-		dev := strings.Fields(line)[0]
-		if dev == "Filename" {
-			continue
-		}
-
-		devices = append(devices, noSlashes(dev))
-	}
 	for _, metric := range ioMetrics {
 		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric)}
 		metricTypes = append(metricTypes, metricType)
