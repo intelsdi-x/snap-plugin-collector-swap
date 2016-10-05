@@ -28,7 +28,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
@@ -39,9 +42,9 @@ import (
 
 const (
 	// Name of the plugin
-	name = "swap"
+	PluginName = "swap"
 	// Version of the plugin
-	version = 4
+	version = 5
 	// Type of the plugin
 	pluginType = plugin.CollectorPluginType
 
@@ -52,18 +55,20 @@ const (
 	ioPrefix     = "io"
 	devPrefix    = "device"
 	combPrefix   = "all"
+
+	ProcPathDir = "/proc"
+	ProcPathCfg = "proc_path"
 )
 
 var (
 	// Swap IO data source for kernel 2.6+
-	SourceIOnew = "/proc/vmstat"
+	SourceIOnew = ProcPathDir + "/vmstat"
 	// Swap IO data source for kernel <2.6
-	SourceIOold = "/proc/stat"
+	SourceIOold = ProcPathDir + "/stat"
 	// Per device swap data source
-	SourcePerDev = "/proc/swaps"
+	SourcePerDev = ProcPathDir + "/swaps"
 	// Combined swap data source
-	SourceCombined = "/proc/meminfo"
-
+	SourceCombined = ProcPathDir + "/meminfo"
 	// Swap IO metrics
 	ioMetrics = []string{"in_bytes_per_sec", "in_pages_per_sec", "out_bytes_per_sec", "out_pages_per_sec"}
 	// Swap per device metrics
@@ -72,13 +77,17 @@ var (
 	combMetrics = []string{"used_bytes", "used_percent", "free_bytes", "free_percent", "cached_bytes", "cached_percent"}
 )
 
-// Swap holds Linux swap related metrics
-type Swap struct {
-	ioStats   map[string]float64
-	devStats  map[string]float64
-	combStats map[string]float64
-	ioHistory ioData
-	newIOfile bool
+// SwapCollector holds Linux swap related metrics
+type swapCollector struct {
+	ioStats          map[string]float64
+	devStats         map[string]float64
+	combStats        map[string]float64
+	ioHistory        ioData
+	newIOfile        bool
+	initialized      bool
+	initializedMutex *sync.Mutex
+	logger           *log.Logger
+	proc_path        string
 }
 
 // ioData holds historic data for trend calculation
@@ -90,11 +99,39 @@ type ioData struct {
 
 // Meta returns plugin meta data
 func Meta() *plugin.PluginMeta {
-	return plugin.NewPluginMeta(name, version, pluginType, []string{}, []string{plugin.SnapGOBContentType})
+	return plugin.NewPluginMeta(PluginName, version, pluginType, []string{}, []string{plugin.SnapGOBContentType})
+}
+
+// Function to check properness of configuration parameter
+// and set plugin attribute accordingly
+func (swap *swapCollector) setProcPath(cfg interface{}) error {
+	swap.initializedMutex.Lock()
+	defer swap.initializedMutex.Unlock()
+	if swap.initialized {
+		return nil
+	}
+	procPath, err := config.GetConfigItem(cfg, ProcPathCfg)
+	if err == nil && len(procPath.(string)) > 0 {
+		procPathStats, err := os.Stat(procPath.(string))
+		if err != nil {
+			return err
+		}
+		if !procPathStats.IsDir() {
+			return errors.New(fmt.Sprintf("%s is not a directory", procPath.(string)))
+		}
+		swap.proc_path = procPath.(string)
+		SourceIOnew = procPath.(string) + "/vmstat"
+		SourceIOold = procPath.(string) + "/stat"
+		SourcePerDev = procPath.(string) + "/swaps"
+		SourceCombined = procPath.(string) + "/meminfo"
+		swap.newIOfile = true
+	}
+	swap.initialized = true
+	return nil
 }
 
 // New returns new swap plugin instance
-func New() *Swap {
+func NewSwapCollector() *swapCollector {
 	newIOfile := true
 	// Check if we should use new or old source for IO data
 	files := []string{SourcePerDev, SourceCombined}
@@ -104,31 +141,38 @@ func New() *Swap {
 		newIOfile = false
 	}
 	defer fh.Close()
-
 	// Bail out if not all data sources are accessible
 	for _, f := range files {
 		if !fileOK(f) {
 			return nil
 		}
 	}
-
 	ih := ioData{
 		swapIn:    0,
 		swapOut:   0,
 		timestamp: time.Now(),
 	}
-	s := &Swap{
-		ioStats:   map[string]float64{},
-		devStats:  map[string]float64{},
-		combStats: map[string]float64{},
-		ioHistory: ih,
-		newIOfile: newIOfile,
+	logger := log.New()
+	imutex := new(sync.Mutex)
+	s := &swapCollector{
+		ioStats:          map[string]float64{},
+		devStats:         map[string]float64{},
+		combStats:        map[string]float64{},
+		ioHistory:        ih,
+		newIOfile:        newIOfile,
+		logger:           logger,
+		initializedMutex: imutex,
+		proc_path:        ProcPathDir,
 	}
 	return s
 }
 
 // CollectMetrics returns metrics relevant to Linux swap
-func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, error) {
+func (swap *swapCollector) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, error) {
+	err := swap.setProcPath(mts[0])
+	if err != nil {
+		return nil, err
+	}
 	// Gather metrics
 	getDevDone := false
 	getCombDone := false
@@ -162,7 +206,6 @@ func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, 
 			}
 		}
 	}
-
 	//Populate metrics
 	metrics := []plugin.MetricType{}
 	var m plugin.MetricType
@@ -218,39 +261,33 @@ func (swap *Swap) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, 
 }
 
 // GetMetricTypes returns the metric types relevant to Linux swap
-func (swap *Swap) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+func (swap *swapCollector) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+	err := swap.setProcPath(cfg)
+	if err != nil {
+		return nil, err
+	}
 	metricTypes := []plugin.MetricType{}
-
-	if procPath, err := config.GetConfigItem(cfg, "proc_path"); err == nil {
-		SourceIOnew = procPath.(string) + "/vmstat"
-		SourceIOold = procPath.(string) + "/stat"
-		SourcePerDev = procPath.(string) + "/swaps"
-		SourceCombined = procPath.(string) + "/meminfo"
-
-		swap.newIOfile = true
-		// Check if we should use new or old source for IO data
-		files := []string{SourcePerDev, SourceCombined}
-		fh, err := os.Open(SourceIOnew)
-		if err != nil {
-			files = append(files, SourceIOold)
-			swap.newIOfile = false
-		}
-		defer fh.Close()
-
-		// Bail out if not all data sources are accessible
-		for _, f := range files {
-			if !fileOK(f) {
-				return nil, fmt.Errorf("Data source %v not accesible", f)
-			}
+	// Check if we should use new or old source for IO data
+	files := []string{SourcePerDev, SourceCombined}
+	fh, err := os.Open(SourceIOnew)
+	if err != nil {
+		files = append(files, SourceIOold)
+		swap.newIOfile = false
+	}
+	defer fh.Close()
+	// Bail out if not all data sources are accessible
+	for _, f := range files {
+		if !fileOK(f) {
+			return nil, fmt.Errorf("Data source %v not accessible", f)
 		}
 	}
-
 	fd, err := os.Open(SourcePerDev)
+	// Should never occur as SourcePerDev is part of the file list above
+	// and previous loop already checks availability of file
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file for reading: %s", SourcePerDev)
 	}
 	defer fd.Close()
-
 	for _, metric := range ioMetrics {
 		metricType := plugin.MetricType{Namespace_: core.NewNamespace(vendorPrefix, srcPrefix, typePrefix, ioPrefix, metric)}
 		metricTypes = append(metricTypes, metricType)
@@ -271,16 +308,16 @@ func (swap *Swap) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, er
 }
 
 // GetConfigPolicy returns a ConfigPolicy
-func (swap *Swap) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	cfg := cpolicy.New()
-	rule, _ := cpolicy.NewStringRule("proc_path", false, "/proc")
-	policy := cpolicy.NewPolicyNode()
-	policy.Add(rule)
-	cfg.Add([]string{vendorPrefix, srcPrefix, name}, policy)
-	return cfg, nil
+func (swap *swapCollector) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
+	cp := cpolicy.New()
+	rule, _ := cpolicy.NewStringRule(ProcPathCfg, false, ProcPathDir)
+	node := cpolicy.NewPolicyNode()
+	node.Add(rule)
+	cp.Add([]string{vendorPrefix, srcPrefix, PluginName}, node)
+	return cp, nil
 }
 
-// calcPercantage returns outcome of fraction defined by nominator and denominator in percents
+// calcPercentage returns outcome of fraction defined by nominator and denominator in percents
 func calcPercentage(nom, denom float64) float64 {
 	if denom == 0 {
 		// avoid dividing by zero
@@ -295,7 +332,6 @@ func getDevMetrics(dest map[string]float64) error {
 		return fmt.Errorf("Failed to open file for reading: %s", SourcePerDev)
 	}
 	defer fd.Close()
-
 	scanner := bufio.NewScanner(fd)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -314,25 +350,19 @@ func getDevMetrics(dest map[string]float64) error {
 		if err != nil {
 			return fmt.Errorf("Swap size for %s is not a number: %s", dev, totalS)
 		}
-
 		usedS := strings.Fields(line)[3]
 		used, err := strconv.ParseFloat(usedS, 64)
 		if err != nil {
 			return fmt.Errorf("Used swap size for %s is not a number: %s", dev, usedS)
 		}
-
 		usedBytes := used * 1024.0
 		freeBytes := (total - used) * 1024.0
-
 		keyUsedBytes := dev + "/" + devMetrics[0]
 		dest[keyUsedBytes] = usedBytes
-
 		keyUsedPerc := dev + "/" + devMetrics[1]
 		dest[keyUsedPerc] = calcPercentage(used, total)
-
 		keyFreeBytes := dev + "/" + devMetrics[2]
 		dest[keyFreeBytes] = freeBytes
-
 		keyFreePerc := dev + "/" + devMetrics[3]
 		dest[keyFreePerc] = calcPercentage(total-used, total)
 	}
@@ -345,7 +375,6 @@ func getCombinedMetrics(dest map[string]float64) error {
 		return fmt.Errorf("Failed to open following file for reading: %s", SourceCombined)
 	}
 	defer fd.Close()
-
 	scanner := bufio.NewScanner(fd)
 	scanner.Split(bufio.ScanLines)
 	total := 0.0
@@ -380,14 +409,11 @@ func getCombinedMetrics(dest map[string]float64) error {
 			}
 		}
 	}
-
 	if total == 0 {
 		fmt.Fprintln(os.Stderr, "Total size of swap is zero, swap might be turned off")
 	}
-
 	used := total - free
 	totalSwap := total + cached
-
 	dest[combMetrics[0]] = used * 1024.0
 	dest[combMetrics[1]] = calcPercentage(used, totalSwap)
 	dest[combMetrics[2]] = free * 1024.0
@@ -397,7 +423,7 @@ func getCombinedMetrics(dest map[string]float64) error {
 	return nil
 }
 
-func getIOmetrics(swap *Swap) error {
+func getIOmetrics(swap *swapCollector) error {
 	fileToOpen := ""
 	if swap.newIOfile {
 		fileToOpen = SourceIOnew
@@ -409,7 +435,6 @@ func getIOmetrics(swap *Swap) error {
 		return fmt.Errorf("Failed to open following file for reading: %s", fileToOpen)
 	}
 	defer fd.Close()
-
 	scanner := bufio.NewScanner(fd)
 	scanner.Split(bufio.ScanLines)
 	var swapIn float64
@@ -456,11 +481,9 @@ func getIOmetrics(swap *Swap) error {
 	oldSwapOut := swap.ioHistory.swapOut
 	oldTimestamp := swap.ioHistory.timestamp
 	duration := time.Since(oldTimestamp).Seconds()
-
 	if duration == 0 {
 		return errors.New("Invalid duration time")
 	}
-
 	swap.ioStats[ioMetrics[0]] = (swapIn - oldSwapIn) * pageSize / duration
 	swap.ioStats[ioMetrics[1]] = (swapIn - oldSwapIn) / duration
 	swap.ioStats[ioMetrics[2]] = (swapOut - oldSwapOut) * pageSize / duration
