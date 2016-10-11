@@ -33,7 +33,7 @@ import (
 
 // plugin bootstrap
 func main() {
-	swapPlugin := swap.New()
+	swapPlugin := swap.NewSwapCollector()
 	if swapPlugin == nil {
 		panic("Failed to initialize plugin\n")
 	}
