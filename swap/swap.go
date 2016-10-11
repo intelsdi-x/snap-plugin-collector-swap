@@ -99,7 +99,15 @@ type ioData struct {
 
 // Meta returns plugin meta data
 func Meta() *plugin.PluginMeta {
-	return plugin.NewPluginMeta(PluginName, version, pluginType, []string{}, []string{plugin.SnapGOBContentType})
+	return plugin.NewPluginMeta(
+		PluginName,
+		version,
+		pluginType,
+		[]string{},
+		[]string{plugin.SnapGOBContentType},
+		plugin.RoutingStrategy(plugin.StickyRouting),
+		plugin.ConcurrencyCount(1),
+	)
 }
 
 // Function to check properness of configuration parameter
