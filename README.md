@@ -24,7 +24,7 @@ snap plugin for collecting swap metrics from /proc linux filesystem
 
 ### Installation
 #### Download the plugin binary:
-You can get the pre-built binaries for your OS and architecture at snap's [Github Releases](https://github.com/intelsdi-x/snap/releases) page.
+You can get the pre-built binaries for your OS and architecture at plugin's [Github Releases](https://github.com/intelsdi-x/snap-plugin-collector-swap/releases) page.
 
 #### To build the plugin binary:
 Fork https://github.com/intelsdi-x/snap-plugin-collector-swap
@@ -37,18 +37,13 @@ Build the plugin by running make in repo:
 ```
 $ make
 ```
-This builds the plugin in `/build/rootfs`
+This builds the plugin in `./build/`
 
 ### Configuration and Usage
-* Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started).
-* Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/README.md#examples).
 
-## Documentation
-
-### Collected Metrics
 The path to the procfs can be provided in configuration as `proc_path`. If configuration is not provided, the plugin will use the default of `/proc`.
 
-It can be set in the snap global config that is loaded with snapd, e.g.:
+It can be set in the Snap global config that is loaded with snapteld, e.g.:
 ```json
 {
     "log_level": 1,
@@ -66,37 +61,33 @@ It can be set in the snap global config that is loaded with snapd, e.g.:
     }
 }
 ```
+## Documentation
+
+### Collected Metrics
+
 
 The list of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/METRICS.md).
 
 ### Examples
 
-Example running snap-plugin-collector-swap plugin and writing data to a file.
+Example of running Snap swap collector and writing data to file.
 
-Make sure that your `$SNAP_PATH` is set, if not:
+Ensure [Snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
+* initd: `sudo service snap-telemetry start`
+* systemd: `sudo systemctl start snap-telemetry`
+* command line: `sudo snapteld -l 1 -t 0 &`
+
+Download and load Snap plugins:
 ```
-$ export SNAP_PATH=<snapDirectoryPath>/build
+$ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-swap/latest/linux/x86_64/snap-plugin-collector-swap
+$ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest/linux/x86_64/snap-plugin-publisher-file
+$ snaptel plugin load snap-plugin-collector-swap
+$ snaptel plugin load snap-plugin-publisher-file
 ```
 
-Other paths to files should be set according to your configuration, using a file you should indicate where it is located.
-
-In one terminal window, open the snap daemon (in this case with logging set to 1,  trust disabled):
-```
-$ $SNAP_PATH/bin/snapd -l 1 -t 0
-```
-In another terminal window:
-
-Load snap-plugin-collector-swap plugin:
-```
-$ $SNAP_PATH/bin/snapctl plugin load snap-plugin-collector-swap
-```
-Load file plugin for publishing:
-```
-$ $SNAP_PATH/bin/snapctl plugin load $SNAP_PATH/plugin/snap-publisher-file
-```
 See available metrics for your system:
 ```
-$ $SNAP_PATH/bin/snapctl metric list
+$ snaptel metric list
 ```
 
 Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary files in [examples/tasks/] (https://github.com/intelsdi-x/snap-plugin-collector-swap/blob/master/examples/tasks/)):
@@ -129,7 +120,7 @@ Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary 
             "process": null,
             "publish": [
                 {
-                    "plugin_name": "mock-file",
+                    "plugin_name": "file",
                     "config": {
                         "file": "/tmp/published_swap.log"
                     }
@@ -141,7 +132,7 @@ Create a task manifest file to use snap-plugin-collector-swap plugin (exemplary 
 ```
 Create a task:
 ```
-$ $SNAP_PATH/bin/snapctl task create -t swap-file.json
+$ snaptel task create -t swap-file.json
 ```
 
 ### Roadmap
@@ -150,9 +141,7 @@ There isn't a current roadmap for this plugin, but it is in active development. 
 If you have a feature request, please add it as an [issue](https://github.com/intelsdi-x/snap-plugin-collector-swap/issues) and/or submit a [pull request](https://github.com/intelsdi-x/snap-plugin-collector-swap/pulls).
 
 ## Community Support
-This repository is one of **many** plugins in **snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap.
-
-To reach out to other users, head to the [main framework](https://github.com/intelsdi-x/snap#community-support) or visit [snap Gitter channel](https://gitter.im/intelsdi-x/snap).
+This repository is one of **many** plugins in **Snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap To reach out to other users, head to the [main framework](https://github.com/intelsdi-x/snap#community-support)
 
 ## Contributing
 We love contributions!
