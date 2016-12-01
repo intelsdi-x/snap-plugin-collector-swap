@@ -1,0 +1,16 @@
+package: github.com/intelsdi-x/snap-plugin-collector-swap
+import:
+- package: github.com/Sirupsen/logrus
+- package: github.com/intelsdi-x/snap-plugin-utilities
+  subpackages:
+  - config
+- package: github.com/intelsdi-x/snap
+  version: ^0.18
+  subpackages:
+  - control/plugin
+  - control/plugin/cpolicy
+  - core
+testImport:
+- package: github.com/smartystreets/goconvey
+  subpackages:
+  - convey
