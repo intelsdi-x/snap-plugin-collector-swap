@@ -1,0 +1,13 @@
+{
+  "control": {
+    "plugins": {
+      "collector": {
+        "swap": {
+          "all": {
+            "proc_path": "/proc"
+          }
+        }
+      }
+    }
+  }
+}

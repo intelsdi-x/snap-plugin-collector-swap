@@ -1,0 +1,45 @@
+{
+    "version": 1,
+    "schedule": {
+        "type": "simple",
+        "interval": "5s"
+    },
+    "workflow": {
+        "collect": {
+            "metrics": {
+                "/intel/procfs/swap/device/*/used_bytes": {},
+                "/intel/procfs/swap/device/*/used_percent": {},
+                "/intel/procfs/swap/device/*/free_bytes": {},
+                "/intel/procfs/swap/device/*/free_percent": {},
+                "/intel/procfs/swap/all/cached_bytes": {},
+                "/intel/procfs/swap/all/cached_percent": {},
+                "/intel/procfs/swap/all/free_bytes": {},
+                "/intel/procfs/swap/all/free_percent": {},
+                "/intel/procfs/swap/all/used_bytes": {},
+                "/intel/procfs/swap/all/used_percent": {},
+                "/intel/procfs/swap/io/in_bytes_per_sec": {},
+                "/intel/procfs/swap/io/in_pages_per_sec": {},
+                "/intel/procfs/swap/io/out_bytes_per_sec": {},
+                "/intel/procfs/swap/io/out_pages_per_sec": {}
+            },
+            "config": {
+                "/intel/procfs/swap": {
+                    "proc_path": "/proc"
+                }
+            },
+            "publish": [
+		{
+                    "plugin_name": "influxdb",
+                    "config": {
+                        "host": "localhost",
+                        "port": 8086,
+                        "database": "test",
+                        "user": "admin",
+                        "password": "admin"
+                    }
+                }
+            ]
+        }
+    }
+}
+
